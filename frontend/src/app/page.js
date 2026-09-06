@@ -33,7 +33,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `${API_URL}/assistant/?user_id=1&message=${encodeURIComponent(message)}`
+        `${API_URL}/assistant?user_id=1&message=${encodeURIComponent(message)}`
       );
 
       if (!response.ok) {
@@ -48,7 +48,7 @@ export default function Home() {
       setLoading(false);
     }
   }
-  
+
   async function handleAddToCart(productId) {
     try {
       const response = await fetch(
