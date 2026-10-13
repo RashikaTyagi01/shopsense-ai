@@ -14,7 +14,7 @@ export default function CartPage() {
 
   useEffect(() => {
     async function loadCart() {
-      const response = await fetch(`${API_URL}/cart/1`);
+      const response = await fetch(`${API_URL}/api/cart/1`);
       const data = await response.json();
       setCart(data);
     }
@@ -27,7 +27,7 @@ export default function CartPage() {
 
     try {
       const response = await fetch(
-        `${API_URL}/cart/update/?user_id=1&product_id=${productId}&quantity=${newQuantity}`,
+        `${API_URL}/api/cart/update/?user_id=1&product_id=${productId}&quantity=${newQuantity}`,
         {
           method: "PUT",
         }
@@ -59,7 +59,7 @@ export default function CartPage() {
   async function handleRemoveFromCart(productId) {
     try {
       const response = await fetch(
-        `${API_URL}/cart/remove/?user_id=1&product_id=${productId}`,
+        `${API_URL}/api/cart/remove/?user_id=1&product_id=${productId}`,
         {
           method: "DELETE",
         }
@@ -91,7 +91,7 @@ export default function CartPage() {
 
   async function handleClearCart() {
     try {
-      const response = await fetch(`${API_URL}/cart/clear/1`, {
+      const response = await fetch(`${API_URL}/api/cart/clear/1`, {
         method: "DELETE",
       });
 

@@ -25,28 +25,21 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 
-@app.get("/")   
+@app.get("/api")   
 def home():
     return {"message":"Shopping Assistant API"}     
 
 
-@app.get("/products")
+@app.get("/api/products")
 def get_all_products():
     db = SessionLocal()
     products = db.query(Product).all()
     db.close()
     return products
 
-@app.get("/products/{id}")
-def get_product_by_id(id:int):
-    db=SessionLocal()
-    product=db.query(Product).filter(Product.id==id).first()
-    db.close()
-    if product:
-        return product
-    return {"message": "Product Not Found"}
 
-@app.get("/products/filter/")
+
+@app.get("/api/products/filter/")
 def filter_products(max_price: float=None, max_delivery_days: int=None, exclude: str=None):
     db=SessionLocal()
     query=db.query(Product)
@@ -65,14 +58,25 @@ def filter_products(max_price: float=None, max_delivery_days: int=None, exclude:
     db.close()
     return products
 
-@app.get("/semantic-search/")
+
+@app.get("/api/products/{id}")
+def get_product_by_id(id:int):
+    db=SessionLocal()
+    product=db.query(Product).filter(Product.id==id).first()
+    db.close()
+    if product:
+        return product
+    return {"message": "Product Not Found"}
+
+
+@app.get("/api/semantic-search/")
 def search(query: str,max_price: float=None, max_delivery_days: int=None, exclude: str=None):
     results = semantic_search(query, max_price=max_price, max_delivery_days=max_delivery_days, exclude=exclude)
     if not results:
         return {"message":"No matching products found"}
     return results
 
-@app.get("/history/{user_id}")
+@app.get("/api/history/{user_id}")
 def get_history(user_id: int):
     db=SessionLocal()
     history=db.query(PurchaseHistory).filter(PurchaseHistory.user_id==user_id).all()
@@ -90,7 +94,7 @@ def get_history(user_id: int):
     return results
 
 
-@app.get("/reorder/{user_id}")
+@app.get("/api/reorder/{user_id}")
 def reorder(user_id: int):
     result=get_last_purchase(user_id)
     if not result:
@@ -98,7 +102,7 @@ def reorder(user_id: int):
     return result
 
 
-@app.get("/reorder/{user_id}/{product_name}")
+@app.get("/api/reorder/{user_id}/{product_name}")
 def reorder_product(user_id: int, product_name: str):
     result = get_previous_product(user_id,product_name)
     if not result:
@@ -106,11 +110,11 @@ def reorder_product(user_id: int, product_name: str):
     return result
 
 
-@app.get("/assistant")
+@app.get("/api/assistant")
 def shopping_assistant(user_id: int, message: str):
     return handle_request(user_id,message)
 
-@app.post("/cart/add/")
+@app.post("/api/cart/add/")
 def add_product_to_cart(user_id: int, product_id: int, quantity: int=1):
     db=SessionLocal()
     product=db.query(Product).filter(Product.id==product_id).first()
@@ -124,22 +128,22 @@ def add_product_to_cart(user_id: int, product_id: int, quantity: int=1):
     )
 
 
-@app.get("/cart/{user_id}")
+@app.get("/api/cart/{user_id}")
 def get_cart(user_id: int):
     return get_user_cart(user_id)
 
 
-@app.delete("/cart/remove/")
+@app.delete("/api/cart/remove/")
 def remove_product_from_cart(user_id: int, product_id: int):
     return remove_from_cart(user_id,product_id)
 
 
-@app.put("/cart/update/")
+@app.put("/api/cart/update/")
 def update_product_quantity(user_id: int, product_id: int, quantity: int):
     return update_cart_quantity(user_id,product_id,quantity)
 
 
-@app.delete("/cart/clear/{user_id}")
+@app.delete("/api/cart/clear/{user_id}")
 def clear_user_cart(user_id:int):
     return clear_cart(user_id)
 

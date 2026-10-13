@@ -13,7 +13,7 @@ export default function Home() {
   const [addedProductId, setAddedProductId] = useState(null);
   useEffect(() => {
     async function loadCart() {
-      const response = await fetch(`${API_URL}/cart/1`);
+      const response = await fetch(`${API_URL}/api/cart/1`);
       const data = await response.json();
       setCart(data);
     }
@@ -33,7 +33,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `${API_URL}/assistant?user_id=1&message=${encodeURIComponent(message)}`
+        `${API_URL}/api/assistant?user_id=1&message=${encodeURIComponent(message)}`
       );
 
       if (!response.ok) {
@@ -52,7 +52,7 @@ export default function Home() {
   async function handleAddToCart(productId) {
     try {
       const response = await fetch(
-        `${API_URL}/cart/add/?user_id=1&product_id=${productId}&quantity=1`,
+        `${API_URL}/api/cart/add/?user_id=1&product_id=${productId}&quantity=1`,
         {
           method: "POST",
         }
