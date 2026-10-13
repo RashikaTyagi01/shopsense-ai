@@ -1,17 +1,57 @@
-from sentence_transformers import SentenceTransformer
-from sentence_transformers.util import cos_sim
+from google import genai
+from google.genai import types
+import os
+from dotenv import load_dotenv
+from sklearn.metrics.pairwise import cosine_similarity
+
 from database import SessionLocal
 from models import Product
+import json
 
-model=SentenceTransformer("all-MiniLM-L6-v2")
 
-embedding_cache={}
+load_dotenv()
 
-def get_product_embedding(product):
-     if product.id not in embedding_cache:
-          text = f"{product.name}. {product.description}. Category: {product.category}"
-          embedding_cache[product.id] = model.encode(text)
-     return embedding_cache[product.id]
+client=genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+def get_embedding(text):
+    result=client.models.embed_content(
+         model="gemini-embedding-001",
+         contents=text,
+         config=types.EmbedContentConfig(
+              task_type="SEMANTIC_SIMILARITY",
+              output_dimensionality=768
+         )
+    )
+    return result.embeddings[0].values
+
+
+def get_product_embeddings(products):
+    texts = [
+        f"{product.name}. {product.description}. Category: {product.category}"
+        for product in products
+    ]
+
+    all_embeddings = []
+
+    for i in range(0, len(texts), 100):
+        batch = texts[i:i + 100]
+
+        result = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=batch,
+            config=types.EmbedContentConfig(
+                task_type="SEMANTIC_SIMILARITY",
+                output_dimensionality=768
+            )
+        )
+
+        all_embeddings.extend(
+            embedding.values for embedding in result.embeddings
+        )
+
+    return all_embeddings
+
+
 
 def semantic_search(query, top_k=3, threshold=0.4, max_price=None, max_delivery_days=None, exclude=None):
     db=SessionLocal()
@@ -39,14 +79,22 @@ def semantic_search(query, top_k=3, threshold=0.4, max_price=None, max_delivery_
         product for product in products
         if product.quantity > 0
     ]
+    products=[
+        product for product in products
+        if product.embedding
+    ]
     if not products:
         db.close()
         return []
     
-    product_embeddings=[get_product_embedding(product) for product in products]
-    query_embedding=model.encode(query)
+    product_embeddings=[
+        json.loads(product.embedding)
+        for product in products
+    ]
     
-    scores=cos_sim(query_embedding, product_embeddings)
+    query_embedding=get_embedding(query)
+    
+    scores=cosine_similarity([query_embedding], product_embeddings)
     final_results=[]
     results=list(zip(products,scores[0]))
     results.sort(key=lambda x: x[1], reverse=True)

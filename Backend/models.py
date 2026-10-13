@@ -1,4 +1,4 @@
-from sqlalchemy import Column,Integer,String,Float
+from sqlalchemy import Column,Integer,String,Float,Text
 from database import Base
 
 class Product(Base):
@@ -10,6 +10,7 @@ class Product(Base):
     quantity=Column(Integer)
     category=Column(String)
     delivery_days=Column(Integer)
+    embedding=Column(Text,nullable=True)
 
 
 class PurchaseHistory(Base):
